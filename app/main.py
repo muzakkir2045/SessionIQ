@@ -24,7 +24,7 @@ app = Flask(
     instance_relative_config=True )
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
-    database_url = "sqlite:///" + os.path.join(INSTANCE_PATH, "database.db")
+    raise ValueError("DATABASE_URL is not set")
 
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -206,6 +206,9 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
 
+        if not username or not password:
+            return render_template('register.html', error="All fields are required")
+
         if Users.query.filter_by(username = username).first():
             return render_template('register.html', error = "Username already taken")
         user_success , user_msg = is_valid_username(username)
@@ -218,7 +221,8 @@ def register():
 
         db.session.add(new_user)
         db.session.commit()
-        return redirect(url_for('login'))
+        # return redirect(url_for('login'))
+        return f"{username} | {password}"
     return render_template('register.html')
 
 
@@ -227,6 +231,10 @@ def login():
     if request.method == "POST":
         username = request.form.get('username')
         password = request.form.get('password')
+
+        if not username or not password:
+            return render_template('login.html', error="All fields are required")
+
         user = Users.query.filter_by(username = username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
