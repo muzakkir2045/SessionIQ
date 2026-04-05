@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template, redirect, request, session, url_for, abort
+from flask import Flask, render_template, redirect, request, session, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required,current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
@@ -43,7 +43,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 db.init_app(app)
 migrate = Migrate(app, db)
 
-app.debug = False
+app.debug = True
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -311,6 +311,100 @@ def delete_session(project_id,session_id):
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+
+
+def demo_insights_analyzer(sessions):
+    """
+    Standalone version for playground - no database required
+    sessions = list of dicts: [{'duration_minutes': int, 'outcome': str}, ...]
+    """
+    if not sessions or len(sessions) < 3:
+        return None
+
+    total_sessions = len(sessions)
+    total_duration = sum(s['duration_minutes'] for s in sessions)
+    outcome_exists = sum(1 for s in sessions if s.get('outcome', '').strip())
+
+    # Simple short/long split using median
+    durations = [s['duration_minutes'] for s in sessions]
+    durations.sort()
+    median_duration = durations[total_sessions // 2]
+
+    short_sessions = [s for s in sessions if s['duration_minutes'] <= median_duration]
+    long_sessions = [s for s in sessions if s['duration_minutes'] > median_duration]
+
+    # Density = total outcome length / total duration
+    short_outcome_len = sum(len(s.get('outcome', '')) for s in short_sessions)
+    long_outcome_len = sum(len(s.get('outcome', '')) for s in long_sessions)
+    short_duration = sum(s['duration_minutes'] for s in short_sessions)
+    long_duration = sum(s['duration_minutes'] for s in long_sessions)
+
+    outcome_density_short = short_outcome_len / short_duration if short_duration > 0 else 0
+    outcome_density_long = long_outcome_len / long_duration if long_duration > 0 else 0
+
+    outcome_rate = outcome_exists / total_sessions
+
+    # Simple messages (you can expand later)
+    if outcome_density_short > outcome_density_long + 0.1:
+        summary_message = "Shorter sessions tend to produce clearer outcomes per minute."
+        recommendation = "Try working in shorter, focused sessions."
+    elif outcome_density_long > outcome_density_short + 0.1:
+        summary_message = "Longer sessions appear to generate more outcome value per minute."
+        recommendation = "Longer uninterrupted sessions seem to work better for you."
+    else:
+        summary_message = "Session length does not significantly affect outcome quality."
+        recommendation = "Session length appears flexible. Focus on recording clear outcomes."
+
+    if outcome_rate >= 0.7:
+        reliability_message = "Most sessions produce a recorded outcome. Good consistency."
+    elif outcome_rate >= 0.4:
+        reliability_message = "Outcomes are produced inconsistently."
+    else:
+        reliability_message = "Many sessions end without a recorded outcome."
+
+    return {
+        'summary_message': summary_message,
+        'reliability_message': reliability_message,
+        'observation_message': None,   # you can add later
+        'recommendation': recommendation
+    }
+
+
+@app.route('/playground', methods=['GET', 'POST'])
+def playground():
+    # Initialize with 3 hardcoded sessions on first load / refresh
+    if 'demo_sessions' not in session or request.method == 'GET':
+        session['demo_sessions'] = [
+            {'duration_minutes': 45, 'work_description': 'Fixed authentication bug', 'outcome': 'Login now works with Supabase'},
+            {'duration_minutes': 90, 'work_description': 'Implemented user dashboard', 'outcome': 'Dashboard shows past sessions'},
+            {'duration_minutes': 30, 'work_description': 'Refactored CSS for mobile', 'outcome': 'Landing page looks clean on iPhone'}
+        ]
+
+    if request.method == 'POST':
+        try:
+            duration = int(request.form.get('duration_minutes', 30))
+            description = request.form.get('work_description', '').strip()
+            outcome = request.form.get('outcome', '').strip()
+
+            session['demo_sessions'].append({
+                'duration_minutes': duration,
+                'work_description': description,
+                'outcome': outcome
+            })
+            session.modified = True
+            flash('Session added!', 'success')
+        except:
+            flash('Invalid input.', 'danger')
+
+    sessions = session.get('demo_sessions', [])
+
+    # Use the standalone function
+    insights = demo_insights_analyzer(sessions) if len(sessions) >= 3 else None
+
+    return render_template('playground.html', 
+                           sessions=sessions, 
+                           insights=insights)
+
 
 
 if __name__ == "__main__":

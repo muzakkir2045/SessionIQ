@@ -10,7 +10,9 @@
 
 <body>
 
-{% include "partials/header.html" %}
+{% if not request.endpoint == 'playground' %}
+  {% include "partials/header.html" %}
+{% endif %}
 
 {% block content %}{% endblock %}
 

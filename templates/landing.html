@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Progress Intelligence – Structured Self-Analysis</title>
+    <title>SessionIQ</title>
 
     <!-- ADD THESE 4 LINES -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
@@ -19,7 +19,13 @@
 <nav class="navbar">
     <div class="container">
         <div class="logo">SessionIQ</div>
+        
         <div class="nav-links">
+            <a href="#how-it-works">How It Works</a>
+            <a href="#features">Features</a>
+            <a href="#try-it-out-section">Try It Now</a>
+            <a href="#who-its-for">Who It's For</a>
+            
             <a href="/login">Login</a>
             <a href="/register" class="cta-btn">Get Started</a>
         </div>
@@ -39,7 +45,7 @@
     </div>
 </section>
 
-<section class="what-it-does">
+<section class="what-it-does" id="features">
     <div class="container">
         <h2>Built for structured self-analysis.</h2>
         <div class="section-divider"></div>
@@ -113,7 +119,31 @@
   </div>
 </section>
 
-<section class="who-its-for">
+<!-- Try it Now / Playground Section -->
+<section class="try-it-out-section" id="try-it-out-section">
+  <div class="container">
+    <h2>Try it now!</h2>
+    <p class="subtitle">Test SessionIQ live — add sessions, see insights, and get recommendations.<br>
+    Everything resets when you refresh the page.</p>
+
+    <div class="playground-wrapper">
+      <iframe 
+        src="/playground" 
+        width="100%" 
+        height="850" 
+        frameborder="0" 
+        style="border: 1px solid #e2e8f0; border-radius: 12px; background: white;">
+      </iframe>
+    </div>
+
+    <p class="note">
+      💡 This is a live demo. Refresh the page to reset all demo data.
+    </p>
+  </div>
+</section>
+
+
+<section class="who-its-for" id="who-its-for">
   <div class="container">
     <h2>Who this is for</h2>
     

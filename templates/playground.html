@@ -1,0 +1,93 @@
+
+{% extends "base.html" %}
+
+{% block title %}Playground{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+{% endblock css %}
+{% block content %}
+<section class="playground-section">
+  <div class="container">
+    <h2>Playground</h2>
+    <p class="subtitle">Try SessionIQ live • Data resets on every refresh • No account needed</p>
+
+    <div class="playground-layout">
+      
+      <!-- LEFT: Add Session Form -->
+      <div class="playground-left">
+        <div class="demo-form">
+          <h3>Add a new session</h3>
+          <form method="POST">
+            <div class="form-row">
+              <label>Duration (minutes)</label>
+              <input type="number" name="duration_minutes" value="45" min="1" required>
+            </div>
+            <div class="form-row">
+              <label>What did you work on?</label>
+              <input type="text" name="work_description" 
+                     placeholder="e.g. Refactored login flow" required>
+            </div>
+            <div class="form-row">
+              <label>Outcome (what you achieved)</label>
+              <textarea name="outcome" rows="2" 
+                        placeholder="e.g. Login flow now works with Supabase"></textarea>
+            </div>
+            <button type="submit" class="primary-btn">Add Session</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- RIGHT: Insights -->
+      <div class="playground-right">
+        {% if insights %}
+        <div class="demo-insights">
+          <h3>Insights & Recommendation</h3>
+          <div class="insight-box">
+            <p><strong>Summary:</strong> {{ insights.get('summary_message', '') }}</p>
+            <p><strong>Reliability:</strong> {{ insights.get('reliability_message', '') }}</p>
+            
+            {% if insights.get('observation_message') %}
+            <p><strong>Observation:</strong> {{ insights.observation_message }}</p>
+            {% endif %}
+            
+            <div class="recommendation">
+              <strong>Recommendation:</strong> {{ insights.get('recommendation', '') }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- BELOW: Sessions Table (Full Width) -->
+    <div class="demo-sessions">
+      <h3>Your demo sessions ({{ sessions|length }})</h3>
+      
+      {% if sessions %}
+        <table>
+          <thead>
+            <tr>
+              <th>Duration</th>
+              <th>Description</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sessions %}
+            <tr>
+              <td>{{ s.duration_minutes }} min</td>
+              <td>{{ s.work_description }}</td>
+              <td>{{ s.outcome or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="empty">No sessions yet. Add one above.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}
